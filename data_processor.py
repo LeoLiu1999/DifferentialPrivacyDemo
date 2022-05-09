@@ -1,0 +1,224 @@
+import csv
+import random
+import numpy
+
+
+def load_data(filename = "employees.csv"):
+    dataset = []
+    with open(filename, 'r', newline='') as csvfile:
+        reader = csv.reader(csvfile)
+        for row in reader:
+            dataset.append(row)
+    return dataset
+
+
+def count_query(dataset, conditions=[], epsilon=.5):
+    """
+    Executes a query counting data instances that meets the conditions.
+    
+    Arguments:
+    dataset -- dataset being queried
+    
+    conditions -- list of filtering conditions, where each condition is of the
+        form:
+        (columnID, categories)
+        columnID: 0: ID,
+                  1: first name
+                  2: last name
+                  3: gender
+                  4: department
+                  5: salary
+        Categorical conditions are met if a data instance is in the
+        `categories` list.
+        Numerical conditions (conditions on ID, age and salary) are met if it
+        falls in the range indicated by the 2 numbers in the list.
+    
+    example:
+    count_query(data, conditions=[(3, ["male"]), (4,["Applied Physics",
+                "Biomedical Engineering"]), (5,[30000,60000])))
+    queries how many men from the applied physics and bioledical engineering 
+    departments with salaries between 30k and 60k.
+    """
+    count = 0
+    for instance in dataset:
+        fulfills_condition = True
+        for (columnID, categories) in conditions:
+            # check conditions on categorical attributes
+            if columnID in [1,2,3,4] and instance[columnID] in categories:
+                pass
+            # check conditions on numeric attributes
+            elif columnID in [0,5,6] and int(instance[columnID]) in \
+                 range(categories[0], categories[1]):
+                pass
+            else:
+                fulfills_condition = False
+        if fulfills_condition:
+            count += 1
+    
+    sensitivity = 1
+    noise = numpy.random.laplace(loc=0, scale=sensitivity/epsilon)
+    
+    return count + noise
+    
+
+def age_sum_query(dataset, conditions, epsilon=.5):
+    """
+    Executes a query summing the age of data instances that meets the 
+    conditions.
+    This is an example of a summation query with bounded sensitivity,
+    since the age in the dataset is bound between 18 and 80.
+    
+    Arguments:
+    dataset -- dataset being queried
+    
+    conditions -- list of filtering conditions, where each condition is of the
+        form:
+        (columnID, categories)
+        columnID: 0: ID,
+                  1: first name
+                  2: last name
+                  3: gender
+                  4: department
+                  5: salary
+        Categorical conditions are met if a data instance is in the
+        `categories` list.
+        Numerical conditions (conditions on ID, age and salary) are met if it
+        falls in the range indicated by the 2 numbers in the list.
+    
+    example:
+    age_sum_query(data, conditions=[(3, ["male"]), (4,["Applied Physics",
+                  "Biomedical Engineering"]), (5,[30000,60000])))
+    queries the total age of men from the applied physics and bioledical
+    engineering departments with salaries between 30k and 60k.
+    """
+    age_sum = 0
+    for instance in dataset:
+        fulfills_condition = True
+        for (columnID, categories) in conditions:
+            # check conditions on categorical attributes
+            if columnID in [1,2,3,4] and instance[columnID] in categories:
+                pass
+            # check conditions on numeric attributes
+            elif columnID in [0,5,6] and int(instance[columnID]) in \
+                 range(categories[0], categories[1]):
+                pass
+            else:
+                fulfills_condition = False
+        if fulfills_condition:
+            age_sum += int(instance[5])
+    
+    # for bounded queries, the sensitivity is equal to the difference between
+    # the upper and lower bounds of the attribute.
+    # In this case, the bounds are 80 and 18.
+    sensitivity = 80 - 18
+    noise = numpy.random.laplace(loc=0, scale=sensitivity/epsilon)
+    
+    return age_sum + noise
+
+
+def salary_sum_query(dataset, conditions, epsilon=.5):
+    """
+    Executes a query summing the salaries of data instances that meets the 
+    conditions.
+    
+    This is an example of a summation query with unbounded sensitivity,
+    since the salary in the dataset is on a Gaussian distribution.
+    Therefore, the dataset will be subject to clipping, or artificial bounding,
+    where data instances outside an artificial lower and upper bound are
+    excluded.
+    The lower bound is set to 30_000, which is the `SALARY_MIN` from data
+    generation.
+    The upper bound is set to 300_000, which is expected to capture almost all
+    (99.996833%) of the data instances.
+    Note that this is not a realistic bound for real datasets on salaries,
+    and are only applicable in this instance given that the salaries were
+    generated by a Gaussian distribution.
+    
+    Arguments:
+    dataset -- dataset being queried
+    
+    conditions -- list of filtering conditions, where each condition is of the
+        form:
+        (columnID, categories)
+        columnID: 0: ID,
+                  1: first name
+                  2: last name
+                  3: gender
+                  4: department
+                  5: salary
+        Categorical conditions are met if a data instance is in the
+        `categories` list.
+        Numerical conditions (conditions on ID, age and salary) are met if it
+        falls in the range indicated by the 2 numbers in the list.
+    
+    example:
+    salary_sum_query(data, conditions=[(3, ["male"]), (4,["Applied Physics",
+                     "Biomedical Engineering"]), (5,[30000,60000])))
+    queries the total salary of men from the applied physics and bioledical
+    engineering departments with salaries between 30k and 60k.
+    """
+    salary_sum = 0
+    for instance in dataset:
+        fulfills_condition = True
+        for (columnID, categories) in conditions:
+            # check conditions on categorical attributes
+            if columnID in [1,2,3,4] and instance[columnID] in categories:
+                pass
+            # check conditions on numeric attributes
+            elif columnID in [0,5,6] and int(instance[columnID]) in \
+                 range(categories[0], categories[1]):
+                pass
+            else:
+                fulfills_condition = False
+        if fulfills_condition:
+            # salary above 300,000 are treated as 300,000
+            salary_sum += min(int(instance[5]), 300_000)
+    
+    # here, the bounds are 300,000 and 50,000.
+    sensitivity = 300_000 - 50_000
+    noise = numpy.random.laplace(loc=0, scale=sensitivity/epsilon)
+    
+    return salary_sum + noise
+
+
+if __name__ == "__main__":
+    dataset = load_data()[1:] #removes header row
+    count = count_query(dataset, conditions=[(3, ["male"]), 
+                        (4,["Applied Physics", "Biomedical Engineering"]),
+                        (6,[30000,60000])])
+    age = age_sum_query(dataset, conditions=[(3, ["male"]),
+                        (4,["Applied Physics", "Biomedical Engineering"]),
+                        (6,[30000,60000])])
+    salary = salary_sum_query(dataset, conditions=[(3, ["male"]),
+                              (4,["Applied Physics", "Biomedical Engineering"]),
+                              (6,[30000,60000])])
+    
+    print("example of queries with relatively low noise:")
+    print("statistics of all men from the applied physics and bioledical",
+          "engineering departments with salaries between 30k and 60k: ")
+    print("count:\t\t", str(count))
+    print("average age:\t", str(age / count))
+    print("average salary:\t", str(salary / count))
+    
+    # say our adversary wants information on a specific person of interest (POI)
+    # that they already know the ID and name of, and...
+    poi_ID = 50
+    poi_first_name = dataset[poi_ID][1]
+    poi_last_name = dataset[poi_ID][2]
+    
+    # and structures a query to test if the POI is in the CS department.
+    # without DP, this query returns 1 if they are, 0 if they aren't.
+    poi_count = count_query(dataset, conditions=[(1,[poi_first_name]),
+                        (2,[poi_last_name]), (4,["Computer Science"])])
+
+    print()
+    print("example of queries with relatively high noise")
+    print("count of all with the name ", poi_first_name, poi_last_name,
+          "in the Computer Science department: ", poi_count)
+    
+    # and structures a query to get their salary.
+    # without DP, this query returns their actual salary.
+    poi_salary = salary_sum_query(dataset, conditions=[(1,[poi_first_name]),
+                                (2,[poi_last_name]), (4,["Computer Science"])])
+    print("sum of salary of all with the name ", poi_first_name, poi_last_name,
+          "in the Computer Science department: ", poi_salary)
