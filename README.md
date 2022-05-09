@@ -1,16 +1,18 @@
 # DifferentialPrivacyDemo
 
+[See here for details](https://github.com/LeoLiu1999/DifferentialPrivacyDemo/blob/main/Differential%20Privacy.pdf)
+
 ## Launch Instructions
 
 ### 1. Clone this repository
 
 #### ssh:
 
-`git clone git@github.com:tmoi29/tenaciousTurtles.git`
+`git@github.com:LeoLiu1999/DifferentialPrivacyDemo.git`
 
 #### https:
 
-`git clone https://github.com/tmoi29/tenaciousTurtles.git`
+`https://github.com/LeoLiu1999/DifferentialPrivacyDemo.git`
 
 ### 2. Install dependencies
 
