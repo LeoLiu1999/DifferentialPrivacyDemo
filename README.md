@@ -1,6 +1,6 @@
 # DifferentialPrivacyDemo
 
-[See here for details](https://github.com/LeoLiu1999/DifferentialPrivacyDemo/blob/main/Differential%20Privacy.pdf)
+[See here for more on Differential Privacy](https://github.com/LeoLiu1999/DifferentialPrivacyDemo/blob/main/Differential%20Privacy.pdf)
 
 ## Launch Instructions
 
